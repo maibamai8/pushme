@@ -32,6 +32,55 @@ PushMe 是一款专为 Android 设计的轻量级消息通知客户端，帮助�
 
 ---
 
+## 🏗️ 系统架构
+
+```mermaid
+graph TB
+    USER["👤 用户<br/>Web 请求"]
+
+    subgraph 远程服务
+        OFFICIAL["🌐 官方服务<br/>官方 API"]
+        SELFHOST["🏠 自建服务<br/>自建 API"]
+    end
+
+    subgraph 局域网
+        APP["📱 Android App<br/>内置 API · 转发服务"]
+        WIN1["💻 Windows 客户端<br/>内置 API · 转发服务"]
+        WIN2["💻 Windows 客户端<br/>内置 API · 转发服务"]
+    end
+
+    USER -->|"HTTP 请求"| OFFICIAL
+    USER -->|"HTTP 请求"| SELFHOST
+    USER -->|"局域网直接请求"| APP
+    USER -->|"局域网直接请求"| WIN1
+
+    APP -->|"转发消息"| WIN1
+    WIN1 -->|"转发消息"| WIN2
+
+    APP -.-|"TCP / WebSocket"| OFFICIAL
+    APP -.-|"TCP / WebSocket"| SELFHOST
+    WIN1 -.-|"WebSocket"| SELFHOST
+
+    style USER fill:#e74c3c,stroke:#333,color:#fff
+    style OFFICIAL fill:#4a90d9,stroke:#333,color:#fff
+    style SELFHOST fill:#7b68ee,stroke:#333,color:#fff
+    style APP fill:#50c878,stroke:#333,color:#fff
+    style WIN1 fill:#ff8c00,stroke:#333,color:#fff
+    style WIN2 fill:#ff8c00,stroke:#333,color:#fff
+```
+
+> 🔗 **统一 API 接口**：官方服务、自建服务、App API、Windows API 接口规范完全一致
+>
+> 📡 **消息路径**：
+> - **用户发起**：用户通过 Web 请求官方 API、自建服务 API，或局域网直接请求 App/Win API
+> - **远程推送**：消息通过 App 与官方服务/自建服务的 TCP/WebSocket 连接传输至手机
+> - **局域网直达**：通过局域网 IP 直接调用 App API 或 Win API，消息直达设备
+> - **消息转发**：手机可将消息转发至局域网内的 Windows 客户端
+> - **链式转发**：Windows 客户端之间可互相转发消息
+> - **后台连接**：App 与官方服务/自建服务保持 TCP/WebSocket 长连接；Windows 客户端可连接自建服务（WebSocket）
+
+---
+
 ## 🖼️ 应用预览
 
 <table>
